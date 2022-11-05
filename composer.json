@@ -1,0 +1,19 @@
+{
+    "name": "hp/myebag-backend",
+    "autoload": {
+        "psr-4": {
+            "myebag\\": "src",
+            "App\\":"App"
+        }
+    },
+    "authors": [
+        {
+            "name": "NajayNoha",
+            "email": "najaynohayla@gmail.com"
+        }
+    ],
+    "require": {
+        "vlucas/phpdotenv": "^5.5",
+        "symfony/var-dumper": "^6.1"
+    }
+}
