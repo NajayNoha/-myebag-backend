@@ -1,11 +1,8 @@
-<?php 
+<?php
 
-namespace App\model;
+namespace App\Models;
+
 class ConnectToDb  {
-    private $host = "localhost";
-    private $user = "root";
-    private $pass = "";
-    private $dbname = "myebag";
 
     protected static function connect(){
         try{
@@ -17,10 +14,9 @@ class ConnectToDb  {
             $db = new \PDO($dsn, $user, $pass);
             $db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             return $db;
-        } catch (Exception $err) {
+        } catch (\PDOException $err) {
             echo('ERREUR !!!!!! <br>' . $err->getMessage());
             die();
         }
     }
 }
-?> 
