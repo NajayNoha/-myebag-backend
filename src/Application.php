@@ -4,7 +4,6 @@ namespace Src;
 
 use Src\Http\Route;
 use Src\Http\Request;
-use Src\Http\Response;
 
 class Application
 {
@@ -15,8 +14,7 @@ class Application
     public function __construct()
     {
         $this->request  = new Request;
-        $this->response = new Response;
-        $this->route    = new Route($this->request, $this->response);
+        $this->route    = new Route($this->request);
     }
 
     public function run() 
