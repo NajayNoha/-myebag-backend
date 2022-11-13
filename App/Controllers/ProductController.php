@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Image;
+use App\Models\User;
 use Src\Support\Arr;
 
 
@@ -60,6 +61,7 @@ class ProductController
         $id = $_GET['id'] ?? false;
 
         if ($id == false) {
+
             print_r(\json_encode([
                 'message' => 'id was not provided'
             ]));
@@ -67,7 +69,6 @@ class ProductController
         } else {
 
             $product = Product::read($id);
-            
             if ($product == false) {
 
                 print(\json_encode([
@@ -83,16 +84,16 @@ class ProductController
     }
 
 
+    // Create product
     public function create() {
-        $check = Arr::has($_POST, ['name', 'desc', 'SKU', 'category_id', 'inventory_id', 'price', 'discount_id']);
+        // Check if post array has all the data
+        $check = Arr::has($_POST, ['name', 'desc', 'category_id', 'inventory_id', 'price', 'discount_id']);
             
         if ($check) {
             $data = [
                 'name' => $_POST['name'],
                 'desc' => $_POST['desc'],
-                'SKU' => $_POST['SKU'],
                 'category_id' => $_POST['category_id'],
-                'inventory_id' => $_POST['inventory_id'],
                 'price' => $_POST['price'],
                 'discount_id' => $_POST['discount_id']
             ];
@@ -105,6 +106,57 @@ class ProductController
             ));
 
         }
+    }
+
+
+    public function update() {
+        $check = Arr::has($_POST, ['id', 'email', 'user_jwt']);
+        $data = [];
+
+        $response = [
+            "message" => "invalid data !",
+            "status" => "failed"
+        ];
+        
+        if ($check && $_POST['id'] != '') {
+
+            $email = $_POST['email'];
+            $token = $_POST['user_jwt'];
+
+            if (!User::check_is_admin($email, $token)) {
+                $response = [
+                    "message" => "You don't have access to this route",
+                    "status"  => "failed"
+                ];
+
+            } else {
+
+                $id = $_POST['id'];
+                $response = [
+                    "message" => "Modifications are done !",
+                    "status"  => "success"
+                ];
+
+
+                // Grab all the changed data from post array
+                isset($_POST['name']) ? array_push($data, 'name') : '';
+                isset($_POST['desc']) ? array_push($data, 'desc') : '';
+                isset($_POST['category_id']) ? array_push($data, 'category_id') : '';
+                isset($_POST['price']) ? array_push($data, 'price') : '';
+                isset($_POST['discount_id']) ? array_push($data, 'discount_id') : '';
+
+                $response = Product::update($id, Arr::only($_POST, $data));
+
+
+
+            }
+
+        
+        }
+
+
+        print_r(json_encode($response));
+        exit();
     }
 
 

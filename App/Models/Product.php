@@ -1,8 +1,10 @@
 <?php
 
 namespace App\Models;
-// use App\Models\Db;
+use PDOException;
 use Src\Support\Arr;
+
+date_default_timezone_set('Africa/Casablanca'); 
 
 class Product extends ConnectToDb
 {
@@ -30,16 +32,35 @@ class Product extends ConnectToDb
 
 
     public static function create(array $data) {
-        $attributes_arr = ['name', 'desc', 'SKU', 'category_id', 'inventory_id', 'price','discount_id', 'created_at'];
+        $attributes_arr = ['name', 'desc', 'SKU', 'category_id', 'price','discount_id', 'created_at'];
 
-        $data['created_at'] = '2022-11-2';
+        $data['created_at'] = date('Y-m-d H:i:s');
 
         $attributes = mysql_spread($attributes_arr);
-        $data_values = mysql_spread(Arr::only($data, $attributes_arr));
 
-        $query = "INSERT INTO product " . $attributes . " VALUES " . $data_values;
+        $query = "INSERT INTO product " . $attributes . " VALUES (:name, :desc, :SKU, :category_id, :price, :discount_id, :created_at)";
+        $stmt = self::connect()->prepare($query);
 
-        return $query;
+        $stmt->bindParam(':name', $data['name']);
+        $stmt->bindParam(':desc', $data['desc']);
+        $stmt->bindParam(':SKU', $data['SKU']);
+        $stmt->bindParam(':category_id', $data['category_id']);
+        $stmt->bindParam(':price', $data['price']);
+        $stmt->bindParam(':discount_id', $data['discount_id']);
+        $stmt->bindParam(':created_at', $data['created_at']);
+
+        try {
+
+            if($stmt->execute()) {
+                return true;
+            } else {
+                return false;
+            }
+            
+            return $query;
+        } catch (PDOException $e) {
+            return false;
+        }
     }
 
 
@@ -61,7 +82,37 @@ class Product extends ConnectToDb
 
 
     public static function update($id, $data) {
-        $query = "";
+
+        $data['modified_at'] = date('Y-m-d H:i:s');
+
+        // $attributes = mysql_spread($attributes_arr);
+
+        $q = [];
+
+        foreach ($data as $key => $value) {
+            $str = "" . $key . " = '" . $value . "'";
+            array_push($q, $str);
+        }
+
+        $query_data = implode(' AND ', $q);
+
+        $query = "UPDATE product  SET " . $query_data . " WHERE id = :id";
+        $stmt = self::connect()->prepare($query);
+
+        $stmt->bindParam(':id', $id);
+
+        try {
+            if($stmt->execute()) {
+                return $query . $id;
+            } else {
+                return false;
+            }
+            
+            return $query;
+        } catch (PDOException $e) {
+            return false;
+        }
+
     }
 
 

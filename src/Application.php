@@ -9,7 +9,6 @@ class Application
 {
     protected $route;
     protected $request;
-    protected $response;
 
     public function __construct()
     {
