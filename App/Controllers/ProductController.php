@@ -17,40 +17,32 @@ class ProductController
         $products = Product::all();
         
         // Looping through each product to collect it's data
-        $products = array_map(function ($arr) {
+        $products = array_map(function ($product) {
             
             // Declaring only attributes we need from db tables
-            $product_attributes = ['id', 'name', 'price', 'SKU'];
-            $category_attributes = ['id', 'name', 'desc'];
+            $product_attributes = ['id', 'desc', 'name', 'price', 'SKU', 'created_at'];
 
-
-            // Grabbing category's id from product
-            $category_id = $arr['category_id'];
-            $category = Arr::only(Category::read($category_id), $category_attributes);
+            $category_id = $product['category_id'];
 
             // Grab only attributes we need from product
-            $arr = Arr::only($arr, $product_attributes);
+            $product = Arr::only($product, $product_attributes);
 
-            // fetching product images
-            $images = Image::product($arr['id']) ? Image::product($arr['id']) : [];
-
-            // Ordering images by their order number
-            $arr_images = [];
-            for ($i=0; $i < count($images); $i++) { 
-                $arr_images[$images[$i]['order_image']] = $images[$i]['link_image'];
-            }
 
             // Group everything in result array 
-            $arr['category'] = $category;
-            $arr['images'] = $arr_images;
+            $product['category'] = self::get_product_category($category_id);
+            $product['images'] = self::get_product_images($product['id']);
 
-            return $arr;
+            return $product;
 
         }, $products);
 
+        $output = [
+            'status' => 'success',
+            'products' => $products
+        ];
 
         // Output results
-        \print_r(\json_encode($products));
+        \print_r(\json_encode($output));
         exit();
     }
 
@@ -63,7 +55,8 @@ class ProductController
         if ($id == false) {
 
             print_r(\json_encode([
-                'message' => 'id was not provided'
+                'message' => 'id was not provided',
+                'status' => 'failed'
             ]));
             
         } else {
@@ -72,11 +65,32 @@ class ProductController
             if ($product == false) {
 
                 print(\json_encode([
-                    'message' => 'Product was not found !'
+                    'message' => 'Product not found !',
+                    'status' => 'failed'
                 ]));
             
             } else {
-                \print_r(\json_encode($product));
+
+                // Declaring only attributes we need from db tables
+                $product_attributes = ['id', 'desc', 'name', 'price', 'SKU', 'created_at'];
+                $category_attributes = ['id', 'name', 'desc'];
+                
+                $category_id = $product['category_id'];
+                $category = Arr::only(Category::read($category_id), $category_attributes);
+
+                $product = Arr::only($product, $product_attributes);
+
+
+                // Group everything in result array 
+                $product['category'] = $category;
+                $product['images'] = self::get_product_images($product['id']);
+
+                $output = [
+                    'status' => 'success',
+                    'product' => $product
+                ];
+
+                \print_r(\json_encode($output));
             }
         }
 
@@ -101,7 +115,8 @@ class ProductController
         } else {
             print_r(json_encode(
                 [
-                    'message' => 'informations not complete !'
+                    'message' => 'informations not complete !',
+                    'status' => 'failed'
                 ]
             ));
 
@@ -147,11 +162,7 @@ class ProductController
 
                 $response = Product::update($id, Arr::only($_POST, $data));
 
-
-
             }
-
-        
         }
 
 
@@ -165,7 +176,8 @@ class ProductController
 
         if ($q == false) {
             print_r(\json_encode([
-                'message' => 'there is no search term provided !'
+                'message' => 'there is no search term provided !',
+                'status' => 'failed'
             ]));
             
         } else {
@@ -173,14 +185,43 @@ class ProductController
             $products = Product::search($q);
             if ($products == false) {
                 print(\json_encode([
-                    'message' => 'no product was not found !'
+                    'message' => 'no product was not found !',
+                    'status' => 'failed'
                 ]));
             } else {
-                \print_r(\json_encode($products));
+                $output = [
+                    'status' => 'success',
+                    'products' => $products
+                ];
+
+                \print_r(\json_encode($output));
             }
         }
         
         exit();
+    }
+
+
+    public function get_product_images($id) {
+
+        $images = Image::product($id) ? Image::product($id) : [];
+
+        $arr_images = [];
+        for ($i=0; $i < count($images); $i++) { 
+            $arr_images[$images[$i]['order_image']] = $images[$i]['link_image'];
+        }
+
+        return $arr_images;
+    }
+
+
+    public function get_product_category($id) {
+        $category_attributes = ['id', 'name', 'desc'];
+
+        // Grabbing category's id from product
+        $category = Arr::only(Category::read($id), $category_attributes);
+
+        return $category;
     }
 
 }

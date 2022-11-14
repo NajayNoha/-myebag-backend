@@ -7,10 +7,11 @@ CREATE TABLE `user` (
 	`last_name` VARCHAR(50),
 	`username` VARCHAR(50),
 	`email` VARCHAR(40),
-	`password` VARCHAR(25),
+	`password` VARCHAR(255),
 	`telephone` varchar(15),
 	`user_jwt` VARCHAR(100),
 	`user_type` INT,
+	`user_avatar` INT DEFAULT 2,
 	`last_login` DATETIME,
 	`created_at` DATETIME,
 	`modified_at` DATETIME DEFAULT NULL,
@@ -72,7 +73,6 @@ CREATE TABLE `product` (
 	`desc` TEXT(300),
 	`SKU` varchar(100),
 	`category_id` INT,
-	`invetory_id` INT,
 	`price` DECIMAL,
 	`discount_id` INT DEFAULT NULL,
 	`created_at` DATETIME,
@@ -80,6 +80,8 @@ CREATE TABLE `product` (
 	`deleted_at` DATETIME DEFAULT NULL,
 	PRIMARY KEY (`id`)
 );
+
+CREATE TABLE images (id_image int AUTO_INCREMENT PRIMARY KEY, id_product int, link_image VARCHAR(255), order_image int);
 
 CREATE TABLE `discount` (
 	`id` INT NOT NULL AUTO_INCREMENT,
@@ -141,7 +143,6 @@ ALTER TABLE `user_payment` ADD CONSTRAINT `user_payment_fk0` FOREIGN KEY (`user_
 
 ALTER TABLE `product` ADD CONSTRAINT `product_fk0` FOREIGN KEY (`category_id`) REFERENCES `product_category`(`id`);
 
-ALTER TABLE `product` ADD CONSTRAINT `product_fk1` FOREIGN KEY (`invetory_id`) REFERENCES `product_invetory`(`id`);
 
 ALTER TABLE `product` ADD CONSTRAINT `product_fk2` FOREIGN KEY (`discount_id`) REFERENCES `discount`(`id`);
 

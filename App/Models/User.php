@@ -60,7 +60,7 @@ class User extends ConnectToDb {
         $em = self::check_email_ex($email);
 
         if($em===false){
-            $c ="(user_name, password,first_name,last_name,email,telephone,user_type,last_login,created_at, user_jwt)";
+            $c ="(username, password,first_name,last_name,email,telephone,user_type,last_login,created_at, user_jwt)";
             $query = "INSERT INTO user $c VALUES ('$username', '$pW', '$first_name', '$last_name', '$email', '$telephone', '$user_type', '$timeN', '$timeN','$jwt')";
             $stmt = self::connect()->prepare($query);
             if($stmt->execute()){
@@ -74,7 +74,7 @@ class User extends ConnectToDb {
         $email = self::create_user($data);
 
         if($email!=false){
-            $query = "SELECT user_jwt, user_name, user_avatar, email,first_name,last_name ,telephone, user_type, last_login,  created_at FROM user WHERE user.email= '$email'";
+            $query = "SELECT user_jwt, username, user_avatar, email,first_name,last_name ,telephone, user_type, last_login,  created_at FROM user WHERE user.email= '$email'";
             $stmt = self::connect()->prepare($query);
             if ($stmt->execute()) {
                 $row = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -89,7 +89,7 @@ class User extends ConnectToDb {
 
     // --------------- Login     -----------------------------------------------
     private static function select_user($email){
-        $query = "SELECT user_avatar, user_jwt, user_name, email,first_name,last_name, telephone, user_type, last_login, created_at FROM user WHERE user.email= '$email'";
+        $query = "SELECT user_avatar, user_jwt, username, email,first_name,last_name, telephone, user_type, last_login, created_at FROM user WHERE user.email= '$email'";
         $stmt = self::connect()->query($query);
         if ($stmt->execute()) {
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
