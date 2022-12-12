@@ -189,6 +189,26 @@ class ProductController
                     'status' => 'failed'
                 ]));
             } else {
+
+                $products = array_map(function ($product) {
+            
+                    // Declaring only attributes we need from db tables
+                    $product_attributes = ['id', 'desc', 'name', 'price', 'SKU', 'created_at'];
+        
+                    $category_id = $product['category_id'];
+        
+                    // Grab only attributes we need from product
+                    $product = Arr::only($product, $product_attributes);
+        
+        
+                    // Group everything in result array 
+                    $product['category'] = self::get_product_category($category_id);
+                    $product['images'] = self::get_product_images($product['id']);
+        
+                    return $product;
+        
+                }, $products);
+
                 $output = [
                     'status' => 'success',
                     'products' => $products
@@ -199,6 +219,11 @@ class ProductController
         }
         
         exit();
+    }
+
+
+    public function get_featured_products() {
+        
     }
 
 
