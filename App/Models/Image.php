@@ -32,10 +32,25 @@ class Image extends ConnectToDb
     }
 
 
-    public static function create(array $data) {
-        $query = "";
+    public static function create($product_id,array $images) {
+        $images_query = "";
+
+        for($i = 0; $i < count($images); $i++) {
+            $image = $images[$i];
+            $array = [$product_id, $image, $i + 1];
+            $images_query .= mysql_spread_values($array);
+            if(count($images) !== $i + 1 ) {
+                $images_query .= ",";
+            }
+
+        }
         
 
+        $query = "INSERT INTO images(id_product, link_image, order_image) VALUES " . $images_query;
+
+        $stmt = self::connect()->prepare($query);
+
+        return $stmt->execute();
     }
 
     public static function search($term) {

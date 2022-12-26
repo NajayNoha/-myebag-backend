@@ -2,10 +2,12 @@
 
 namespace App\Controllers;
 use App\Models\Product;
+use App\Models\FeaturedProduct;
 use App\Models\Category;
 use App\Models\Image;
 use App\Models\User;
 use Src\Support\Arr;
+use App\Controllers\UploadController;
 
 
 class ProductController
@@ -101,17 +103,49 @@ class ProductController
     // Create product
     public function create() {
         // Check if post array has all the data
-        $check = Arr::has($_POST, ['name', 'desc', 'category_id', 'inventory_id', 'price', 'discount_id']);
+        $check = Arr::has($_POST, ['name', 'desc', 'category_id', 'price']);
+        $check = Arr::has($_POST, ['product']);
+        $uploaded_images = UploadController::count_uploads();
+        if ($uploaded_images == 0 || $uploaded_images > 3) {
+            print_r(json_encode(
+                [
+                    'message' => 'Product needs at least one image !',
+                    'status' => 'failed'
+                ]
+                ));
+                return false;
+        }
             
         if ($check) {
-            $data = [
-                'name' => $_POST['name'],
-                'desc' => $_POST['desc'],
-                'category_id' => $_POST['category_id'],
-                'price' => $_POST['price'],
-                'discount_id' => $_POST['discount_id']
-            ];
-            print_r(Product::create($data));
+            $product = json_decode($_POST['product'], true);
+            $product['id'] = Product::last_id() + 1;
+            $category = self::get_product_category($product['category_id']);
+            $product_created = Product::create($product);
+            if ($product_created) {
+                $imgs = UploadController::save($category['name'], $product['id']);
+            }
+
+            $images_created = Image::create($product['id'], $imgs);
+
+            if ($product_created && $images_created) {
+
+                print_r(json_encode(
+                    [
+                        'message' => 'Product created !',
+                        'status' => 'success'
+                        ]
+                    ));
+                exit();
+            } else {
+                print_r(json_encode(
+                    [
+                        'message' => 'Product not created !',
+                        'status' => 'failed'
+                        ]
+                    ));
+                exit();
+            }
+            
         } else {
             print_r(json_encode(
                 [
@@ -223,7 +257,47 @@ class ProductController
 
 
     public function get_featured_products() {
+        $products = FeaturedProduct::all();
+
         
+        // Grab only attributes we need from product
+        
+        $products = array_map(function ($product) {
+
+            $product_attributes = ['id', 'desc', 'name', 'price', 'SKU', 'created_at', 'featured_id', 'category', 'images'];
+
+            $product['category'] = self::get_product_category($product['category_id']);
+            $product['images']  = self::get_product_images($product['id']);
+            $product = Arr::only($product, $product_attributes);
+            
+            return $product;
+        }, $products);
+
+        $hoodies = array_filter($products, function ($product) {
+            return $product['category']['id'] == 2;
+        });
+
+        $shoes = array_filter($products, function ($product) {
+            return $product['category']['id'] == 1;
+        });
+
+
+        $watches = array_filter($products, function ($product) {
+            return $product['category']['id'] === '3';
+        });
+
+        $output = [];
+        $output['status'] = 'success';
+        $output['products']['shoes'] = array_values($shoes);
+        $output['products']['hoodies'] = array_values($hoodies);
+        $output['products']['watches'] = array_values($watches);
+
+        echo json_encode($output);
+    }
+
+
+    public function filter_by_category_id($product, $id) {
+        return $product['category_id'] == $id;
     }
 
 

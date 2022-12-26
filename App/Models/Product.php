@@ -31,24 +31,24 @@ class Product extends ConnectToDb
     }
 
 
-    public static function create(array $data) {
-        $attributes_arr = ['name', 'desc', 'SKU', 'category_id', 'price','discount_id', 'created_at'];
+    public static function create($data) {
+        $attributes_arr = ['id', 'name', 'desc', 'SKU', 'category_id', 'price', 'created_at'];
 
         $data['created_at'] = date('Y-m-d H:i:s');
 
         $attributes = mysql_spread($attributes_arr);
 
-        $query = "INSERT INTO product " . $attributes . " VALUES (:name, :desc, :SKU, :category_id, :price, :discount_id, :created_at)";
+        $query = "INSERT INTO product " . $attributes . " VALUES (:id, :name, :desc, :SKU, :category_id, :price, :created_at)";
         $stmt = self::connect()->prepare($query);
 
+        $stmt->bindParam(':id', $data['id']);
         $stmt->bindParam(':name', $data['name']);
         $stmt->bindParam(':desc', $data['desc']);
-        $stmt->bindParam(':SKU', $data['SKU']);
+        $stmt->bindParam(':SKU', $data['name']);
         $stmt->bindParam(':category_id', $data['category_id']);
         $stmt->bindParam(':price', $data['price']);
-        $stmt->bindParam(':discount_id', $data['discount_id']);
+        // $stmt->bindParam(':discount_id', $data['discount_id']);
         $stmt->bindParam(':created_at', $data['created_at']);
-
         try {
 
             if($stmt->execute()) {
@@ -59,6 +59,7 @@ class Product extends ConnectToDb
             
             return $query;
         } catch (PDOException $e) {
+            print_r($e->getMessage());
             return false;
         }
     }
@@ -112,7 +113,13 @@ class Product extends ConnectToDb
         } catch (PDOException $e) {
             return false;
         }
+    }
 
+    public static function last_id() {
+        $query = "SELECT MAX(id) FROM product";
+        $result = self::connect()->query($query)->fetch();
+
+        return $result['0'];
     }
 
 

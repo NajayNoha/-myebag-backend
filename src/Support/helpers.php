@@ -21,6 +21,12 @@ if (!function_exists('mysql_spread')) {
     }
 }
 
+if (!function_exists('mysql_spread_values')) {
+    function mysql_spread_values($arr) {
+        return '("' . implode('", "', $arr) . '")';
+    }
+}
+
 if (!function_exists('base_path')) {
     function base_path() {
         return dirname(__DIR__) . '/../';

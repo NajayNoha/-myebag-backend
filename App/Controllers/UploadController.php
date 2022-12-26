@@ -2,17 +2,25 @@
 
 namespace App\Controllers;
 
+use Directory;
+
 class UploadController
 {
-    public function save() 
+    public static function save($category, $product_id, $limit = 3) 
     {
 
         // Count total files
         $countFiles = count($_FILES['files']['name']);
 
-        // mkdir(base_path() . 'images/products/');
+        if ($countFiles > $limit) return false;
+
+        $path_check = '/images/products/' . $category . '/' . $product_id . '/';
+
+        if(!is_dir($path_check)) {
+            mkdir(base_path() . $path_check);
+        } 
         // Upload location
-        $location = base_path() . 'images/products/';
+        $location = base_path() . 'images/products/' . $category . '/' . $product_id . '/';
 
         // To store uploaded files path
         $files_arr = [];
@@ -34,16 +42,23 @@ class UploadController
                 // Check extension
                 if (in_array($ext, $valid_ext)) {
                     // File path
-                    $path = $location.$filename;
-
+                    $path = $location.($i + 1).'.'.$ext;
                     // Upload file
                     if (move_uploaded_file($_FILES['files']['tmp_name'][$i], $path)) {
-                        $files_arr[] = $path; 
+                        $files_arr[] = $path_check . ( $i + 1 ) . '.' . $ext; 
                     }
                 }
             }
         }
-        print_r($_POST);
-        print_r(json_encode($files_arr));
+
+        // return array with all images's path
+        return $files_arr;
+    }
+
+    public static function count_uploads() {
+        if(!isset($_FILES['files'])) {
+            return 0;
+        }
+        return count($_FILES['files']['name']);
     }
 }
